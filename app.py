@@ -26,7 +26,7 @@ def load_txt(path):
 def load_pdf(path):
     text = check_output(["pdftotext", path, "-"]).decode("utf-8")
     return TaggedDocument(
-        words=[nltk.tokenize.word_tokenize(text)],
+        words=nltk.tokenize.word_tokenize(text),
         tags=[path_to_key(path)]
     )
 
