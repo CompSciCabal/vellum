@@ -31,21 +31,28 @@ def load_pdf(path):
     )
 
 
+EXT_MAP = {
+    ".txt": load_txt,
+    ".pdf": load_pdf
+}
+
+
+def ext_of(p):
+    return os.path.splitext(p)[1]
+
+
 def load_file(path):
-    file_map = {
-        ".txt": load_txt,
-        ".pdf": load_pdf
-    }
-    loader = file_map[os.path.splitext(path)[1]]
+    loader = EXT_MAP[ext_of(path)]
     return loader(path)
 
 
-def fresh_model():
-    ws = os.cpu_count()
-    return Doc2Vec([load_txt(data_dir("lorem ipsum.txt"))], vector_size=5, window=2, min_count=1, workers=ws)
-
-
-def train_with_dir(model, path, epochs=1):
+def data_from_dir(path):
     docs = os.listdir(path)
-    model.train((load_file(os.path.join(path, d)) for d in docs), total_examples=len(docs), epochs=epochs)
-    return model
+    gen = (load_file(os.path.join(path, d)) for d in docs if ext_of(d) in EXT_MAP)
+    count = len([d for d in docs if ext_of(d) in EXT_MAP])
+    return gen, count
+
+
+def model_from_dir(path):
+    ws = os.cpu_count()
+    return Doc2Vec(list(data_from_dir(path)[0]), vector_size=5, window=2, min_count=1, workers=ws)
